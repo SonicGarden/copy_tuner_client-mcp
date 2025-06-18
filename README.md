@@ -26,7 +26,7 @@ Gemfileに以下を追加：
 
 ```ruby
 group :development do
-  gem 'copy_tuner_client-mcp', github: 'SonicGarden/copy_tuner_client-mcp'
+  gem 'copy_tuner_client-mcp', github: 'SonicGarden/copy_tuner_client-mcp', require: false
 end
 ```
 
