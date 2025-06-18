@@ -2,5 +2,8 @@ module CopyTunerClient
   module Mcp
     VERSION: String
     # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+    module Tool
+    end
   end
 end

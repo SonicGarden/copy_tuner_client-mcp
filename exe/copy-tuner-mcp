@@ -2,140 +2,9 @@
 
 require "mcp"
 require "mcp/transports/stdio"
+require_relative "../lib/copy_tuner_client/mcp"
 
 require File.expand_path(File.join("config", "environment"))
-
-class SearchKeyTool < MCP::Tool
-  tool_name "search_key"
-  description "Search and retrieve Rails i18n translation keys. Optimized for finding keys used with t() or I18n.t(), checking multilingual translation content, and getting locale-specific translation values. Quickly finds accurate keys and translations from copy_tuner project translation database."
-  input_schema(
-    properties: {
-      query: { type: "string" },
-      locale: { type: "string", default: "ja" }
-    },
-    required: ["query"]
-  )
-
-  class << self
-    def call(query:, server_context:, locale: "ja")
-      results = CopyTunerClient.cache.blurbs
-                               .select { |key, _| key.start_with?("#{locale}.") && key.include?(query) }
-                               .transform_keys { |key| key.split(".", 2).last }
-
-      MCP::Tool::Response.new([{
-                                type: "text",
-                                text: JSON.pretty_generate(results)
-                              }], results.empty?)
-    end
-  end
-end
-
-class SearchTranslationsTool < MCP::Tool
-  tool_name "search_translations"
-  description "Search and retrieve Rails i18n translations by content. Optimized for finding translations containing specific text, checking translation values across languages, and discovering keys by their translated content. Quickly finds accurate translations and keys from copy_tuner project translation database."
-  input_schema(
-    properties: {
-      query: { type: "string" },
-      locale: { type: "string", default: "ja" }
-    },
-    required: ["query"]
-  )
-
-  class << self
-    def call(query:, server_context:, locale: "ja")
-      results = CopyTunerClient.cache.blurbs
-                               .select { |key, value| key.start_with?("#{locale}.") && value.include?(query) }
-                               .transform_keys { |key| key.split(".", 2).last }
-
-      MCP::Tool::Response.new([{
-                                type: "text",
-                                text: JSON.pretty_generate(results)
-                              }], results.empty?)
-    end
-  end
-end
-
-# TODO: 最終的には同期登録可能にしたいが、まずは既存APIに変更を加えずに登録可能としている
-class CreateI18nKeyTool < MCP::Tool
-  tool_name "create_i18n_key"
-  description "Create a new Rails i18n translation key in the copy_tuner project. This tool registers new keys to the translation database asynchronously. The registration process starts immediately, but the actual creation and availability may take some time to complete due to the asynchronous nature of the system."
-  input_schema(
-    properties: {
-      key: { type: "string", description: "The i18n key to register" },
-      translations: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            locale: { type: "string", description: "The locale for the translation" },
-            value: { type: "string", description: "The translation value" }
-          },
-          required: %w[locale value]
-        },
-        description: "Additional translations for the key in different locales"
-      }
-    },
-    required: ["key"]
-  )
-
-  class << self
-    def call(key:, translations:, server_context:)
-      # NOTE: 同一キーの複数言語はcopytunerの仕様上同時に登録する必要がある
-      locales =
-        translations.map do |translation|
-          full_key = [translation[:locale], key].join(".")
-          CopyTunerClient.cache[full_key] = translation[:value]
-          translation[:locale]
-        end
-      CopyTunerClient.cache.flush
-
-      MCP::Tool::Response.new([{
-                                type: "text",
-                                text: "Started creating i18n key #{key}. (locales: #{locales.join(", ")})"
-                              }])
-    end
-  end
-end
-
-# NOTE: Resourceとして定義するほうが適切な気がするが、MCPクライアントがうまく参照してくれないためToolとして定義している
-class GetLocalesTool < MCP::Tool
-  tool_name "get_locales"
-  description "Retrieve the list of Rails i18n locales currently in use in the copy_tuner project. This tool provides a quick way to see which Rails i18n locales have been registered and are actively used in translations."
-
-  class << self
-    def call(server_context:)
-      locales = CopyTunerClient.configuration.locales
-
-      MCP::Tool::Response.new([{
-                                type: "text",
-                                text: JSON.pretty_generate({ locales: })
-                              }])
-    end
-  end
-end
-
-# 登録済みキーの編集画面のURLを取得
-class GetEditUrlTool < MCP::Tool
-  tool_name "get_edit_url"
-  description "Retrieve the edit URL for a registered i18n key in the copy_tuner project."
-  input_schema(
-    properties: {
-      key: { type: "string", description: "The i18n key to retrieve the edit URL for" }
-    },
-    required: ["key"]
-  )
-
-  class << self
-    def call(key:, server_context:)
-      edit_url = "#{CopyTunerClient.configuration.project_url}/blurbs/#{key}/edit"
-
-      MCP::Tool::Response.new([{
-                                type: "text",
-                                text: edit_url
-                              }])
-    end
-  end
-end
 
 project_id = CopyTunerClient.configuration.project_id || CopyTunerClient.configuration.api_key
 translation_template = MCP::ResourceTemplate.new(
@@ -147,7 +16,13 @@ translation_template = MCP::ResourceTemplate.new(
 
 server = MCP::Server.new(
   name: "copy_tuner",
-  tools: [SearchKeyTool, SearchTranslationsTool, CreateI18nKeyTool, GetLocalesTool, GetEditUrlTool],
+  tools: [
+    CopyTunerClient::Mcp::Tool::SearchKey,
+    CopyTunerClient::Mcp::Tool::SearchTranslations,
+    CopyTunerClient::Mcp::Tool::CreateI18nKey,
+    CopyTunerClient::Mcp::Tool::GetLocales,
+    CopyTunerClient::Mcp::Tool::GetEditUrl
+  ],
   resource_templates: [translation_template]
 )
 

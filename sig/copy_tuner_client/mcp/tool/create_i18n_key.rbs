@@ -1,0 +1,9 @@
+module CopyTunerClient
+  module Mcp
+    module Tool
+      class CreateI18nKey < MCP::Tool
+        def self.call: (key: String, translations: Array[Hash[Symbol, String]], server_context: untyped) -> MCP::Tool::Response
+      end
+    end
+  end
+end

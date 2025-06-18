@@ -1,0 +1,6 @@
+module CopyTunerClient
+  module Mcp
+    module Tool
+    end
+  end
+end

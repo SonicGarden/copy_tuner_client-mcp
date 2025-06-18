@@ -1,0 +1,9 @@
+module CopyTunerClient
+  module Mcp
+    module Tool
+      class GetLocales < MCP::Tool
+        def self.call: (server_context: untyped) -> MCP::Tool::Response
+      end
+    end
+  end
+end

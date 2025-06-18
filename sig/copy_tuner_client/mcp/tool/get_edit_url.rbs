@@ -1,0 +1,9 @@
+module CopyTunerClient
+  module Mcp
+    module Tool
+      class GetEditUrl < MCP::Tool
+        def self.call: (key: String, server_context: untyped) -> MCP::Tool::Response
+      end
+    end
+  end
+end

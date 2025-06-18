@@ -1,0 +1,9 @@
+module CopyTunerClient
+  module Mcp
+    module Tool
+      class SearchTranslations < MCP::Tool
+        def self.call: (query: String, server_context: untyped, ?locale: String) -> MCP::Tool::Response
+      end
+    end
+  end
+end
