@@ -20,13 +20,13 @@ module CopyTunerClient
         class << self
           def call(query:, server_context:, locale: "ja") # rubocop:disable Lint/UnusedMethodArgument
             results = CopyTunerClient.cache.blurbs
-                                     .select { |key, _| key.start_with?("#{locale}.") && key.include?(query) }
-                                     .transform_keys { |key| key.split(".", 2).last }
+              .select { |key, _| key.start_with?("#{locale}.") && key.include?(query) }
+              .transform_keys { |key| key.split(".", 2).last }
 
             MCP::Tool::Response.new([{
-                                      type: "text",
-                                      text: JSON.pretty_generate(results)
-                                    }], results.empty?)
+              type: "text",
+              text: JSON.pretty_generate(results)
+            }], results.empty?)
           end
         end
       end
