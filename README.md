@@ -1,43 +1,101 @@
 # CopyTunerClient::Mcp
 
-TODO: Delete this and the text below, and describe your gem
+Rails i18nの翻訳管理サービス「CopyTuner」のMCP（Model Context Protocol）サーバー実装です。AIアシスタントがRailsアプリケーションの多言語化対応を効率的に支援するためのツールセットを提供します。
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/copy_tuner_client/mcp`. To experiment with that code, run `bin/console` for an interactive prompt.
+## 概要
 
-## Installation
+このgemは、CopyTunerプロジェクトの翻訳データにアクセスし、Rails i18nキーの検索、翻訳の管理、新しいキーの作成などをMCPプロトコル経由で実行できるサーバーを提供します。
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+## 機能
 
-Install the gem and add to the application's Gemfile by executing:
+### 利用可能なツール
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+- **search_key**: Rails i18nキーの検索（`t()`や`I18n.t()`で使用されるキーの検索に最適化）
+- **search_translations**: 翻訳内容による検索（特定のテキストを含む翻訳の検索）
+- **create_i18n_key**: 新しいi18nキーの作成（複数言語対応、非同期処理）
+- **get_locales**: プロジェクトで使用中のロケール一覧の取得
+- **get_edit_url**: 登録済みキーの編集画面URLの生成
+
+### リソーステンプレート
+
+- `copytuner://projects/{project_id}/translations/{locale}/{key}`: 個別の翻訳リソースへのアクセス
+
+## インストール
+
+Gemfileに以下を追加：
+
+```ruby
+group :development do
+  gem 'copy_tuner_client-mcp', github: 'SonicGarden/copy_tuner_client-mcp'
+end
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+そして実行：
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
 ```
 
-## Usage
+## 使用方法
 
-TODO: Write usage instructions here
+### 1. CopyTunerClientの設定
 
-## Development
+まず、Railsアプリケーションでcopy_tuner_clientが適切に設定されている必要があります：
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+# config/initializers/copy_tuner_client.rb
+CopyTunerClient.configure do |config|
+  config.api_key = "your-api-key"
+  config.project_id = "your-project-id"
+  config.locales = ["ja", "en"]
+end
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+### 2. MCPサーバーの起動
 
-## Contributing
+Railsアプリケーションのルートディレクトリで以下を実行：
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/copy_tuner_client-mcp. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/copy_tuner_client-mcp/blob/main/CODE_OF_CONDUCT.md).
+```bash
+bundle exec copy-tuner-mcp
+```
 
-## License
+### 3. AIアシスタントでの利用
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+MCPプロトコルに対応したAIアシスタント（Claude Desktop等）で、以下のような操作が可能になります。
 
-## Code of Conduct
+*注: AIアシスタントに指示を出す際には、i18nのバックエンドにcopy-tunerを利用していることを伝えてください。*
 
-Everyone interacting in the CopyTunerClient::Mcp project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/copy_tuner_client-mcp/blob/main/CODE_OF_CONDUCT.md).
+#### キーの検索
+```
+user.nameに関連するi18nキーを検索してください
+```
+
+#### 翻訳内容の検索
+```
+「ログイン」という文字を含む翻訳を検索してください
+```
+
+#### 新しいキーの作成
+```
+user.profile.bioというキーで「プロフィール」（日本語）と「Profile」（英語）の翻訳を作成してください
+```
+
+### 4. 設定例
+
+MCPクライアント（Claude Desktop等）の設定ファイル例：
+
+```json
+{
+  "mcpServers": {
+    "copy-tuner": {
+      "command": "bundle",
+      "args": ["exec", "copy-tuner-mcp"],
+      "cwd": "/path/to/your/rails/app"
+    }
+  }
+}
+```
+
+## ライセンス
+
+このgemは[MIT License](https://opensource.org/licenses/MIT)の下でオープンソースとして利用可能です。
