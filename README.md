@@ -82,15 +82,31 @@ user.profile.bioというキーで「プロフィール」（日本語）と「P
 
 ### 4. 設定例
 
-MCPクライアント（Claude Desktop等）の設定ファイル例：
+#### VSCode Copilot
 
+`.vscode/mcp.json`
+```json
+{
+  "servers": {
+    "copy-tuner": {
+      "type": "stdio",
+      "command": "bundle",
+      "args": ["exec", "copy-tuner-mcp"],
+      "cwd": "${workspaceFolder}"
+    },
+  }
+}
+```
+
+#### Claude Code
+
+`.mcp.json`
 ```json
 {
   "mcpServers": {
     "copy-tuner": {
       "command": "bundle",
-      "args": ["exec", "copy-tuner-mcp"],
-      "cwd": "/path/to/your/rails/app"
+      "args": ["exec", "copy-tuner-mcp"]
     }
   }
 }
