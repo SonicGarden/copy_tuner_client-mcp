@@ -7,9 +7,15 @@ module CopyTunerClient
   module Mcp
     module Tool
       # NOTE: Resourceとして定義するほうが適切な気がするが、MCPクライアントがうまく参照してくれないためToolとして定義している
+      # Retrieves the list of Rails i18n locales currently in use in the CopyTuner project.
       class GetLocales < MCP::Tool
         tool_name "get_locales"
         description "Retrieve the list of Rails i18n locales currently in use in the copy_tuner project. This tool provides a quick way to see which Rails i18n locales have been registered and are actively used in translations."
+        # NOTE: 空っぽでも定義がないとMCPクライアントによってはエラーになる
+        input_schema(
+          properties: {},
+          required: []
+        )
 
         class << self
           def call(server_context:) # rubocop:disable Lint/UnusedMethodArgument
