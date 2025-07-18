@@ -51,56 +51,14 @@ CopyTunerClient.configure do |config|
 end
 ```
 
-### 2. MCPサーバーの起動
+### 2. AIアシスタントでの設定と利用
 
-Railsアプリケーションのルートディレクトリで以下を実行：
-
-```bash
-bundle exec copy-tuner-mcp
-```
-
-### 3. AIアシスタントでの利用
-
-MCPプロトコルに対応したAIアシスタント（Claude Desktop等）で、以下のような操作が可能になります。
-
-*注: AIアシスタントに指示を出す際には、i18nのバックエンドにcopy-tunerを利用していることを伝えてください。*
-
-#### キーの検索
-```
-user.nameに関連するi18nキーを検索してください
-```
-
-#### 翻訳内容の検索
-```
-「ログイン」という文字を含む翻訳を検索してください
-```
-
-#### 新しいキーの作成
-```
-user.profile.bioというキーで「プロフィール」（日本語）と「Profile」（英語）の翻訳を作成してください
-```
-
-### 4. 設定例
-
-#### VSCode Copilot
-
-`.vscode/mcp.json`
-```json
-{
-  "servers": {
-    "copy-tuner": {
-      "type": "stdio",
-      "command": "bundle",
-      "args": ["exec", "copy-tuner-mcp"],
-      "cwd": "${workspaceFolder}"
-    },
-  }
-}
-```
+MCPプロトコルに対応したAIアシスタント（Claude Code、VSCode Copilot等）で、以下の設定ファイルを配置するとMCPサーバーが自動的に起動され、翻訳管理機能が利用可能になります。
 
 #### Claude Code
 
-`.mcp.json`
+プロジェクトのルートディレクトリに `.mcp.json` ファイルを作成：
+
 ```json
 {
   "mcpServers": {
@@ -110,6 +68,52 @@ user.profile.bioというキーで「プロフィール」（日本語）と「P
     }
   }
 }
+```
+
+#### VSCode Copilot
+
+`.vscode/mcp.json` ファイルを作成：
+
+```json
+{
+  "servers": {
+    "copy-tuner": {
+      "type": "stdio",
+      "command": "bundle",
+      "args": ["exec", "copy-tuner-mcp"],
+      "cwd": "${workspaceFolder}"
+    }
+  }
+}
+```
+
+#### 使用例
+
+設定完了後、AIアシスタントで以下のような操作が可能になります：
+
+*注: AIアシスタントに指示を出す際には、i18nのバックエンドにcopy-tunerを利用していることを伝えてください。*
+
+##### キーの検索
+```
+user.nameに関連するi18nキーを検索してください
+```
+
+##### 翻訳内容の検索
+```
+「ログイン」という文字を含む翻訳を検索してください
+```
+
+##### 新しいキーの作成
+```
+user.profile.bioというキーで「プロフィール」（日本語）と「Profile」（英語）の翻訳を作成してください
+```
+
+### 3. 手動起動（動作確認・デバッグ用）
+
+通常はAIアシスタントの設定ファイルを通じて自動的に起動されますが、動作確認やデバッグが必要な場合は、Railsアプリケーションのルートディレクトリで以下を実行して手動起動できます：
+
+```bash
+bundle exec copy-tuner-mcp
 ```
 
 ## ライセンス
