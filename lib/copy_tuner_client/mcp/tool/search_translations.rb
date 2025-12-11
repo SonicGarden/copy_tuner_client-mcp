@@ -26,7 +26,7 @@ module CopyTunerClient
             MCP::Tool::Response.new([{
               type: "text",
               text: JSON.pretty_generate(results)
-            }], results.empty?)
+            }], error: results.empty?)
           end
         end
       end

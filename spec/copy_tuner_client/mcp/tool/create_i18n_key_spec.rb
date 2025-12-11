@@ -29,7 +29,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(mock_cache).to have_received(:flush)
 
       expect(response).to be_a(MCP::Tool::Response)
-      expect(response.is_error).to be(false)
+      expect(response.error?).to be(false)
       expect(response.content.first[:text]).to include("Started creating i18n key #{key}")
       expect(response.content.first[:text]).to include("locales: ja, en")
     end

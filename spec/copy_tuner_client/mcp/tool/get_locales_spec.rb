@@ -15,7 +15,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetLocales do
       response = described_class.call(server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)
-      expect(response.is_error).to be(false)
+      expect(response.error?).to be(false)
       expect(response.content.first[:type]).to eq("text")
 
       result = JSON.parse(response.content.first[:text])
