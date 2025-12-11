@@ -23,7 +23,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchTranslations do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
-      expect(response.is_error).to be(false)
+      expect(response.error?).to be(false)
       expect(response.content.first[:type]).to eq("text")
 
       result = JSON.parse(response.content.first[:text])
@@ -36,7 +36,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchTranslations do
       response = described_class.call(query: "存在しない", server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
-      expect(response.is_error).to be(true)
+      expect(response.error?).to be(true)
 
       result = JSON.parse(response.content.first[:text])
       expect(result).to be_empty

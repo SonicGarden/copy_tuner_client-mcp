@@ -17,7 +17,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetEditUrl do
       response = described_class.call(key: key, server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)
-      expect(response.is_error).to be(false)
+      expect(response.error?).to be(false)
       expect(response.content.first[:type]).to eq("text")
 
       expected_url = "#{project_url}/blurbs/#{key}/edit"
