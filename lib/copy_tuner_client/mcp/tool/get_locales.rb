@@ -13,8 +13,7 @@ module CopyTunerClient
         description "Retrieve the list of Rails i18n locales currently in use in the copy_tuner project. This tool provides a quick way to see which Rails i18n locales have been registered and are actively used in translations."
         # NOTE: 空っぽでも定義がないとMCPクライアントによってはエラーになる
         input_schema(
-          properties: {},
-          required: []
+          properties: {}
         )
 
         class << self
