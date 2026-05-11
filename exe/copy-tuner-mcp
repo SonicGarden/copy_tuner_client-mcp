@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "mcp"
-require "mcp/transports/stdio"
+require "mcp/server/transports/stdio_transport"
 require_relative "../lib/copy_tuner_client/mcp"
 
 require File.expand_path(File.join("config", "environment"))
@@ -46,5 +46,5 @@ server.resources_read_handler do |params|
   end
 end
 
-transport = MCP::Transports::StdioTransport.new(server)
+transport = MCP::Server::Transports::StdioTransport.new(server)
 transport.open
