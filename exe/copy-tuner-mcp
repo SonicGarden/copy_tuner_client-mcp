@@ -20,6 +20,7 @@ server = MCP::Server.new(
     CopyTunerClient::Mcp::Tool::SearchKey,
     CopyTunerClient::Mcp::Tool::SearchTranslations,
     CopyTunerClient::Mcp::Tool::CreateI18nKey,
+    CopyTunerClient::Mcp::Tool::UpdateI18nKey,
     CopyTunerClient::Mcp::Tool::GetLocales,
     CopyTunerClient::Mcp::Tool::GetEditUrl
   ],

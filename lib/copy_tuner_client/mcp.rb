@@ -6,6 +6,8 @@ require_relative "mcp/tool"
 module CopyTunerClient
   module Mcp
     class Error < StandardError; end
-    # Your code goes here...
+
+    # Raised when the CopyTuner OpenAPI v3 server returns a non-success response.
+    class ApiError < Error; end
   end
 end
