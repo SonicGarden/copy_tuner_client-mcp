@@ -12,9 +12,9 @@ module CopyTunerClient
       class CreateI18nKey < MCP::Tool
         tool_name "create_i18n_key"
         description "Create a new Rails i18n translation key in the copy_tuner project. " \
-                    "This registers a new draft key with translations for one or more locales " \
-                    "via the CopyTuner API. The draft is created immediately; publishing happens " \
-                    "separately on the CopyTuner side."
+                    "Registers a draft key with translations for one or more locales via the CopyTuner API. " \
+                    "Note: the key is processed asynchronously on the server and may not be immediately " \
+                    "visible to clients. Publishing happens separately on the CopyTuner side."
         input_schema(
           properties: {
             key: { type: "string", description: "The i18n key to register" },
