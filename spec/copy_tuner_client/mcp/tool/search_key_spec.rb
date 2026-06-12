@@ -9,13 +9,15 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
     let(:locale) { "ja" }
 
     before do
-      # Mock CopyTunerClient.cache.blurbs
+      # Mock CopyTunerClient.cache.blurbs (翻訳済み) と blank_keys (登録済み・翻訳が空)
       allow(CopyTunerClient).to receive(:cache).and_return(
-        double("cache", blurbs: {
+        double("cache",
+               blurbs: {
                  "ja.test_key" => "テストキー",
                  "ja.another_test_key" => "別のテストキー",
                  "en.test_key" => "Test Key"
-               })
+               },
+               blank_keys: Set.new(["ja.test_key_blank", "en.test_key_blank"]))
       )
     end
 
@@ -48,6 +50,29 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(response).to be_a(MCP::Tool::Response)
       result = JSON.parse(response.content.first[:text])
       expect(result).to include("test_key" => "テストキー")
+    end
+
+    it "includes registered-but-empty keys with an empty string value" do
+      response = described_class.call(query: query, server_context: server_context, locale: locale)
+
+      expect(response.error?).to be(false)
+      result = JSON.parse(response.content.first[:text])
+      expect(result).to include("test_key_blank" => "")
+    end
+
+    it "returns both translated and blank keys mixed together" do
+      response = described_class.call(query: query, server_context: server_context, locale: locale)
+
+      result = JSON.parse(response.content.first[:text])
+      expect(result).to include("test_key" => "テストキー")
+      expect(result).to include("test_key_blank" => "")
+    end
+
+    it "applies the locale filter to blank_keys as well" do
+      response = described_class.call(query: query, server_context: server_context, locale: locale)
+
+      result = JSON.parse(response.content.first[:text])
+      expect(result.keys).not_to include("en.test_key_blank")
     end
   end
 end

@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new depende
-  spec.add_dependency "copy_tuner_client", ">= 1.0.0"
+  spec.add_dependency "copy_tuner_client", ">= 1.2.4"
   spec.add_dependency "mcp", "~> 0.15"
 
   # For more information and examples about making a new gem, check out our
