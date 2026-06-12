@@ -9,23 +9,23 @@ require "copy_tuner_client/mcp"
 
 module CopyTunerClient
   module Mcp
-    # Thin HTTP client for the CopyTuner OpenAPI v3 API (/api/v3).
+    # CopyTuner OpenAPI v3 API (/api/v3) 向けの薄い HTTP クライアント。
     #
-    # Connection settings and the API key are read from the gem's public
-    # +CopyTunerClient.configuration+. Only Net::HTTP from the standard library
-    # is used; no extra dependency is introduced.
+    # 接続設定および API キーはジェムの公開インターフェース
+    # +CopyTunerClient.configuration+ から読み込む。標準ライブラリの Net::HTTP のみを
+    # 使用しており、追加の依存関係は導入しない。
     class ApiClient
       API_BASE_PATH = "/api/v3"
       USER_AGENT = "copy_tuner_client-mcp #{CopyTunerClient::Mcp::VERSION}".freeze
 
-      # Errors raised by Net::HTTP that are translated into ApiError.
+      # Net::HTTP が発生させる例外のうち、ApiError に変換されるもの。
       HTTP_ERRORS = [
         Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
         Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError,
         SocketError, OpenSSL::SSL::SSLError, Errno::ECONNREFUSED
       ].freeze
 
-      # Creates one or more draft blurbs together with their localizations.
+      # 1 件以上のドラフト blurb をローカライズデータとともに一括作成する。
       # @param blurbs [Array<Hash>] e.g. [{ key:, localizations: { "ja" => "..." } }]
       # @return [Hash] parsed response body
       # @raise [ApiError] on a non-success response
@@ -33,7 +33,7 @@ module CopyTunerClient
         request(Net::HTTP::Post.new("#{API_BASE_PATH}/bulk_draft_blurbs"), { blurbs: blurbs })
       end
 
-      # Updates the draft localizations of an existing blurb.
+      # 既存の blurb のドラフトローカライズデータを更新する。
       # @param key [String] the i18n key
       # @param localizations [Hash] e.g. { "ja" => "..." }
       # @return [Hash] parsed response body
@@ -62,13 +62,12 @@ module CopyTunerClient
       end
 
       def build_http
-        config = configuration
-        Net::HTTP.new(config.host, config.port).tap do |http|
-          http.open_timeout = config.http_open_timeout
-          http.read_timeout = config.http_read_timeout
-          http.use_ssl = config.secure?
+        Net::HTTP.new(configuration.host, configuration.port).tap do |http|
+          http.open_timeout = configuration.http_open_timeout
+          http.read_timeout = configuration.http_read_timeout
+          http.use_ssl = configuration.secure?
           http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-          http.ca_file = config.ca_file
+          http.ca_file = configuration.ca_file
         end
       end
 
@@ -87,8 +86,8 @@ module CopyTunerClient
         { "error" => raw }
       end
 
-      # Builds a human-readable message from the v3 error shapes:
-      #   { "error": "..." } or { "message": "...", "errors": ["...", ...] }
+      # v3 エラー形式から人間が読めるメッセージを組み立てる。
+      #   { "error": "..." } または { "message": "...", "errors": ["...", ...] }
       def error_message(body)
         return body.to_s unless body.is_a?(Hash)
 

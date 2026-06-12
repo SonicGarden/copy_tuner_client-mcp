@@ -2,11 +2,10 @@
 
 module CopyTunerClient
   module Mcp
+    # すべての MCP ツールの基底モジュール
     module Tool
-      # Base module for all MCP tools
     end
   end
 end
 
-# Auto-require all tool files
 Dir[File.join(__dir__, "tool", "*.rb")].each { |file| require file }

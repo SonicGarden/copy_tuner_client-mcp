@@ -8,7 +8,7 @@ require "copy_tuner_client/mcp/tool/response_helpers"
 module CopyTunerClient
   module Mcp
     module Tool
-      # Updates the draft localizations of an existing i18n key via the CopyTuner API v3.
+      # CopyTuner API v3 を通じて既存の i18n キーのドラフトローカライズデータを更新する。
       class UpdateI18nKey < MCP::Tool
         tool_name "update_i18n_key"
         description "Update the draft translations of an existing Rails i18n key in the copy_tuner project. " \
@@ -37,7 +37,7 @@ module CopyTunerClient
           include ResponseHelpers
 
           def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
-            run_i18n_tool(key: key, translations: translations, verb: "Updated", failed_verb: "update") do |loc|
+            run_i18n_tool(key: key, translations: translations, verb: "Updated") do |loc|
               ApiClient.new.update_draft_blurb(key, loc)
             end
           end

@@ -7,7 +7,7 @@ module CopyTunerClient
   module Mcp
     class Error < StandardError; end
 
-    # Raised when the CopyTuner OpenAPI v3 server returns a non-success response.
+    # CopyTuner OpenAPI v3 サーバーが非成功レスポンスを返した場合に発生する。
     class ApiError < Error; end
   end
 end

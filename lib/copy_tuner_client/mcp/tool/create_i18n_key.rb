@@ -8,7 +8,7 @@ require "copy_tuner_client/mcp/tool/response_helpers"
 module CopyTunerClient
   module Mcp
     module Tool
-      # Registers a new draft i18n key with its localizations via the CopyTuner API v3.
+      # CopyTuner API v3 を通じてローカライズデータつきの新規ドラフト i18n キーを登録する。
       class CreateI18nKey < MCP::Tool
         tool_name "create_i18n_key"
         description "Create a new Rails i18n translation key in the copy_tuner project. " \
@@ -39,7 +39,7 @@ module CopyTunerClient
 
           def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
             # NOTE: 同一キーの複数言語はcopytunerの仕様上同時に登録する必要がある
-            run_i18n_tool(key: key, translations: translations, verb: "Created", failed_verb: "create") do |loc|
+            run_i18n_tool(key: key, translations: translations, verb: "Created") do |loc|
               ApiClient.new.create_bulk_draft_blurbs([{ key: key, localizations: loc }])
             end
           end
