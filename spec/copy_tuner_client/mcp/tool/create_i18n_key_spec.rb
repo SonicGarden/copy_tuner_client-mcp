@@ -17,14 +17,14 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
 
     before do
       allow(CopyTunerClient::Mcp::ApiClient).to receive(:new).and_return(api_client)
-      allow(api_client).to receive(:create_bulk_draft_blurbs)
+      allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
         .and_return({ "message" => "Draft blurbs created successfully" })
     end
 
     it "creates a bulk draft blurb with localizations for multiple locales" do
       response = described_class.call(key: key, translations: translations, server_context: server_context)
 
-      expect(api_client).to have_received(:create_bulk_draft_blurbs).with(
+      expect(api_client).to have_received(:create_sync_bulk_draft_blurbs).with(
         [{ key: key, localizations: { "ja" => "新しいテストキー", "en" => "New Test Key" } }]
       )
 
@@ -39,14 +39,14 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
 
       response = described_class.call(key: key, translations: single_translation, server_context: server_context)
 
-      expect(api_client).to have_received(:create_bulk_draft_blurbs).with(
+      expect(api_client).to have_received(:create_sync_bulk_draft_blurbs).with(
         [{ key: key, localizations: { "ja" => "単一ロケール" } }]
       )
       expect(response.error?).to be(false)
     end
 
     it "returns an error response when the API call fails" do
-      allow(api_client).to receive(:create_bulk_draft_blurbs)
+      allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
         .and_raise(CopyTunerClient::Mcp::ApiError, "Locale count limit over.")
 
       response = described_class.call(key: key, translations: translations, server_context: server_context)
