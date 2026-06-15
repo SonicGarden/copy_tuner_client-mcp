@@ -45,13 +45,13 @@ module CopyTunerClient
 
       private
 
-      def request(request, body)
-        request["Authorization"] = "Bearer #{configuration.api_key}"
-        request["Content-Type"] = "application/json"
-        request["User-Agent"] = USER_AGENT
-        request.body = body.to_json
+      def request(http_request, body)
+        http_request["Authorization"] = "Bearer #{configuration.api_key}"
+        http_request["Content-Type"] = "application/json"
+        http_request["User-Agent"] = USER_AGENT
+        http_request.body = body.to_json
 
-        response = connect { |http| http.request(request) }
+        response = connect { |http| http.request(http_request) }
         handle(response)
       end
 
