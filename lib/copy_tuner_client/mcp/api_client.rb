@@ -61,7 +61,7 @@ module CopyTunerClient
         raise ApiError, "#{e.class.name}: #{e.message}"
       end
 
-      def build_http
+      def build_http # rubocop:disable Metrics/AbcSize
         Net::HTTP.new(configuration.host, configuration.port).tap do |http|
           http.open_timeout = configuration.http_open_timeout
           http.read_timeout = configuration.http_read_timeout
