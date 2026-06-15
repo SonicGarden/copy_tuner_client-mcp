@@ -13,25 +13,25 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       ]
     end
 
-    let(:mock_cache) { double("cache") }
+    let(:api_client) { instance_double(CopyTunerClient::Mcp::ApiClient) }
 
     before do
-      allow(CopyTunerClient).to receive(:cache).and_return(mock_cache)
-      allow(mock_cache).to receive(:[]=)
-      allow(mock_cache).to receive(:flush)
+      allow(CopyTunerClient::Mcp::ApiClient).to receive(:new).and_return(api_client)
+      allow(api_client).to receive(:create_bulk_draft_blurbs)
+        .and_return({ "message" => "Draft blurbs created successfully" })
     end
 
-    it "creates i18n keys for multiple locales" do
+    it "creates a bulk draft blurb with localizations for multiple locales" do
       response = described_class.call(key: key, translations: translations, server_context: server_context)
 
-      expect(mock_cache).to have_received(:[]=).with("ja.new.test.key", "新しいテストキー")
-      expect(mock_cache).to have_received(:[]=).with("en.new.test.key", "New Test Key")
-      expect(mock_cache).to have_received(:flush)
+      expect(api_client).to have_received(:create_bulk_draft_blurbs).with(
+        [{ key: key, localizations: { "ja" => "新しいテストキー", "en" => "New Test Key" } }]
+      )
 
       expect(response).to be_a(MCP::Tool::Response)
       expect(response.error?).to be(false)
-      expect(response.content.first[:text]).to include("Started creating i18n key #{key}")
-      expect(response.content.first[:text]).to include("locales: ja, en")
+      expect(response.content.first[:text]).to include(key)
+      expect(response.content.first[:text]).to include("ja, en")
     end
 
     it "handles single locale translation" do
@@ -39,11 +39,20 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
 
       response = described_class.call(key: key, translations: single_translation, server_context: server_context)
 
-      expect(mock_cache).to have_received(:[]=).with("ja.new.test.key", "単一ロケール")
-      expect(mock_cache).to have_received(:flush)
+      expect(api_client).to have_received(:create_bulk_draft_blurbs).with(
+        [{ key: key, localizations: { "ja" => "単一ロケール" } }]
+      )
+      expect(response.error?).to be(false)
+    end
 
-      expect(response).to be_a(MCP::Tool::Response)
-      expect(response.content.first[:text]).to include("locales: ja")
+    it "returns an error response when the API call fails" do
+      allow(api_client).to receive(:create_bulk_draft_blurbs)
+        .and_raise(CopyTunerClient::Mcp::ApiError, "Locale count limit over.")
+
+      response = described_class.call(key: key, translations: translations, server_context: server_context)
+
+      expect(response.error?).to be(true)
+      expect(response.content.first[:text]).to include("Locale count limit over.")
     end
   end
 end

@@ -2,14 +2,19 @@
 
 require "mcp"
 require "json"
+require "copy_tuner_client/mcp/api_client"
+require "copy_tuner_client/mcp/tool/response_helpers"
 
 module CopyTunerClient
   module Mcp
     module Tool
-      # TODO: 最終的には同期登録可能にしたいが、まずは既存APIに変更を加えずに登録可能としている
+      # CopyTuner API v3 を通じてローカライズデータつきの新規ドラフト i18n キーを登録する。
       class CreateI18nKey < MCP::Tool
         tool_name "create_i18n_key"
-        description "Create a new Rails i18n translation key in the copy_tuner project. This tool registers new keys to the translation database asynchronously. The registration process starts immediately, but the actual creation and availability may take some time to complete due to the asynchronous nature of the system."
+        description "Create a new Rails i18n translation key in the copy_tuner project. " \
+                    "Registers a draft key with translations for one or more locales via the CopyTuner API. " \
+                    "Note: the key is processed asynchronously on the server and may not be immediately " \
+                    "visible to clients. Publishing happens separately on the CopyTuner side."
         input_schema(
           properties: {
             key: { type: "string", description: "The i18n key to register" },
@@ -23,27 +28,20 @@ module CopyTunerClient
                 },
                 required: %w[locale value]
               },
-              description: "Additional translations for the key in different locales"
+              description: "Translations for the key in different locales"
             }
           },
           required: ["key"]
         )
 
         class << self
+          include ResponseHelpers
+
           def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
             # NOTE: 同一キーの複数言語はcopytunerの仕様上同時に登録する必要がある
-            locales =
-              translations.map do |translation|
-                full_key = [translation[:locale], key].join(".")
-                CopyTunerClient.cache[full_key] = translation[:value]
-                translation[:locale]
-              end
-            CopyTunerClient.cache.flush
-
-            MCP::Tool::Response.new([{
-              type: "text",
-              text: "Started creating i18n key #{key}. (locales: #{locales.join(", ")})"
-            }])
+            run_i18n_tool(key: key, translations: translations, verb: "Created") do |loc|
+              ApiClient.new.create_bulk_draft_blurbs([{ key: key, localizations: loc }])
+            end
           end
         end
       end
