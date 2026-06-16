@@ -25,12 +25,13 @@ module CopyTunerClient
         SocketError, OpenSSL::SSL::SSLError, Errno::ECONNREFUSED
       ].freeze
 
-      # 1 件以上のドラフト blurb をローカライズデータとともに一括作成する。
+      # 1 件以上のドラフト blurb をローカライズデータとともに同期で一括作成する。
+      # DB 登録は同期で行いバリデーションエラーを即座に返す。S3 反映のみ非同期ジョブに委譲される。
       # @param blurbs [Array<Hash>] e.g. [{ key:, localizations: { "ja" => "..." } }]
       # @return [Hash] parsed response body
       # @raise [ApiError] on a non-success response
-      def create_bulk_draft_blurbs(blurbs)
-        request(Net::HTTP::Post.new("#{API_BASE_PATH}/bulk_draft_blurbs"), { blurbs: blurbs })
+      def create_sync_bulk_draft_blurbs(blurbs)
+        request(Net::HTTP::Post.new("#{API_BASE_PATH}/sync_bulk_draft_blurbs"), { blurbs: blurbs })
       end
 
       # 既存の blurb のドラフトローカライズデータを更新する。

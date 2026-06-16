@@ -35,12 +35,12 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
     response
   end
 
-  describe "#create_bulk_draft_blurbs" do
+  describe "#create_sync_bulk_draft_blurbs" do
     let(:blurbs) do
       [{ key: "greeting.hello", localizations: { "ja" => "こんにちは", "en" => "Hello" } }]
     end
 
-    it "POSTs to /api/v3/bulk_draft_blurbs with bearer auth and json body" do
+    it "POSTs to /api/v3/sync_bulk_draft_blurbs with bearer auth and json body" do
       captured = {}
       allow(http).to receive(:request) do |request|
         captured[:method] = request.method
@@ -51,10 +51,10 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
         stub_response(Net::HTTPCreated, '{"message":"Draft blurbs created successfully"}')
       end
 
-      result = described_class.new.create_bulk_draft_blurbs(blurbs)
+      result = described_class.new.create_sync_bulk_draft_blurbs(blurbs)
 
       expect(captured[:method]).to eq("POST")
-      expect(captured[:path]).to eq("/api/v3/bulk_draft_blurbs")
+      expect(captured[:path]).to eq("/api/v3/sync_bulk_draft_blurbs")
       expect(captured[:authorization]).to eq("Bearer test-api-key")
       expect(captured[:content_type]).to eq("application/json")
       expect(JSON.parse(captured[:body])).to eq(
@@ -65,13 +65,18 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
       expect(result["message"]).to eq("Draft blurbs created successfully")
     end
 
-    it "raises ApiError with server messages on 422" do
+    it "raises ApiError with the message and errors array on 422" do
+      body = '{"message":"Failed to create draft blurbs.",' \
+             '"errors":["Blurb \'greeting.hello\' already exists."]}'
       allow(http).to receive(:request).and_return(
-        stub_response(Net::HTTPUnprocessableEntity, '{"message":"Locale count limit over."}')
+        stub_response(Net::HTTPUnprocessableEntity, body)
       )
 
-      expect { described_class.new.create_bulk_draft_blurbs(blurbs) }
-        .to raise_error(CopyTunerClient::Mcp::ApiError, /Locale count limit over\./)
+      expect { described_class.new.create_sync_bulk_draft_blurbs(blurbs) }
+        .to raise_error(
+          CopyTunerClient::Mcp::ApiError,
+          /Failed to create draft blurbs\..*Blurb 'greeting\.hello' already exists\./
+        )
     end
 
     it "raises ApiError on 401" do
@@ -79,7 +84,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
         stub_response(Net::HTTPUnauthorized, '{"error":"Invalid API key."}')
       )
 
-      expect { described_class.new.create_bulk_draft_blurbs(blurbs) }
+      expect { described_class.new.create_sync_bulk_draft_blurbs(blurbs) }
         .to raise_error(CopyTunerClient::Mcp::ApiError, /Invalid API key\./)
     end
   end

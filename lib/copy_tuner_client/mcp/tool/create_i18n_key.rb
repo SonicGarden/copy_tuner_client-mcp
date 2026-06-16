@@ -13,8 +13,11 @@ module CopyTunerClient
         tool_name "create_i18n_key"
         description "Create a new Rails i18n translation key in the copy_tuner project. " \
                     "Registers a draft key with translations for one or more locales via the CopyTuner API. " \
-                    "Note: the key is processed asynchronously on the server and may not be immediately " \
-                    "visible to clients. Publishing happens separately on the CopyTuner side."
+                    "The key is created synchronously, so validation errors (e.g. the key already exists or " \
+                    "the locale count limit is exceeded) are returned immediately. " \
+                    "Note: this endpoint is for initial registration only and rejects existing keys. " \
+                    "The created draft is not immediately visible to clients because cache (S3) refresh " \
+                    "happens asynchronously, and publishing happens separately on the CopyTuner side."
         input_schema(
           properties: {
             key: { type: "string", description: "The i18n key to register" },
@@ -40,7 +43,7 @@ module CopyTunerClient
           def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
             # NOTE: 同一キーの複数言語はcopytunerの仕様上同時に登録する必要がある
             run_i18n_tool(key: key, translations: translations, verb: "Created") do |loc|
-              ApiClient.new.create_bulk_draft_blurbs([{ key: key, localizations: loc }])
+              ApiClient.new.create_sync_bulk_draft_blurbs([{ key: key, localizations: loc }])
             end
           end
         end
