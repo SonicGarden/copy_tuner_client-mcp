@@ -14,11 +14,18 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
     end
 
     let(:api_client) { instance_double(CopyTunerClient::Mcp::ApiClient) }
+    let(:cache) { double("cache") }
 
     before do
       allow(CopyTunerClient::Mcp::ApiClient).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
         .and_return({ "message" => "Draft blurbs created successfully" })
+      allow(CopyTunerClient).to receive(:cache).and_return(cache)
+      allow(cache).to receive(:download)
+      allow(cache).to receive(:blurbs)
+        .and_return({}, { "ja.#{key}" => "新しいテストキー", "en.#{key}" => "New Test Key" })
+      allow(cache).to receive(:blank_keys).and_return(Set.new)
+      allow(described_class).to receive(:sleep)
     end
 
     it "複数ロケールのローカライズを含む一括 draft blurb を作成する" do
@@ -55,13 +62,10 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(response.content.first[:text]).to include("Locale count limit over.")
     end
 
-    context "wait を指定しない（デフォルト）とき" do
+    context "wait: false を明示したとき" do
       it "キャッシュをポーリングせず即座に成功を返す" do
-        cache = double("cache")
-        allow(cache).to receive(:download)
-        allow(CopyTunerClient).to receive(:cache).and_return(cache)
-
-        response = described_class.call(key: key, translations: translations, server_context: server_context)
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: false)
 
         expect(cache).not_to have_received(:download)
         expect(response.error?).to be(false)
@@ -69,15 +73,6 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
     end
 
     context "wait が true のとき" do
-      let(:cache) { double("cache") }
-
-      before do
-        allow(CopyTunerClient).to receive(:cache).and_return(cache)
-        allow(cache).to receive(:download)
-        # 実時間で待たないよう sleep をスタブ
-        allow(described_class).to receive(:sleep)
-      end
-
       it "blurbs にキーが反映されるまで download でキャッシュをポーリングする" do
         # 1回目: 未反映 / 2回目: blurbs に反映
         allow(cache).to receive(:blurbs).and_return({}, { "ja.#{key}" => "新しいテストキー", "en.#{key}" => "New Test Key" })

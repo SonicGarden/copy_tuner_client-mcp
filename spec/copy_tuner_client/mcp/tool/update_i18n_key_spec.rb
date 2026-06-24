@@ -15,10 +15,18 @@ RSpec.describe CopyTunerClient::Mcp::Tool::UpdateI18nKey do
 
     let(:api_client) { instance_double(CopyTunerClient::Mcp::ApiClient) }
 
+    let(:cache) { double("cache") }
+
     before do
       allow(CopyTunerClient::Mcp::ApiClient).to receive(:new).and_return(api_client)
       allow(api_client).to receive(:update_draft_blurb)
         .and_return({ "message" => "Draft blurb localizations updated successfully" })
+      allow(CopyTunerClient).to receive(:cache).and_return(cache)
+      allow(cache).to receive(:download)
+      allow(cache).to receive(:blurbs)
+        .and_return({}, { "ja.#{key}" => "更新後の値", "en.#{key}" => "Updated value" })
+      allow(cache).to receive(:blank_keys).and_return(Set.new)
+      allow(described_class).to receive(:sleep)
     end
 
     it "updates the draft blurb localizations for the given key" do
@@ -46,19 +54,8 @@ RSpec.describe CopyTunerClient::Mcp::Tool::UpdateI18nKey do
       expect(response.content.first[:text]).to include("has been published and cannot be updated via API")
     end
 
-    context "when wait is true" do
-      let(:cache) { double("cache") }
-
-      before do
-        allow(CopyTunerClient).to receive(:cache).and_return(cache)
-        allow(cache).to receive(:download)
-        allow(described_class).to receive(:sleep)
-      end
-
-      it "polls the cache until the key is reflected" do
-        allow(cache).to receive(:blurbs).and_return({}, { "ja.#{key}" => "更新後の値", "en.#{key}" => "Updated value" })
-        allow(cache).to receive(:blank_keys).and_return(Set.new)
-
+    context "wait: true を明示したとき" do
+      it "キーが反映されるまでキャッシュをポーリングする" do
         response = described_class.call(key: key, translations: translations, server_context: server_context,
                                         wait: true)
 
