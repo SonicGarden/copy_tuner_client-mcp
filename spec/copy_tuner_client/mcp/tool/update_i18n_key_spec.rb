@@ -45,5 +45,27 @@ RSpec.describe CopyTunerClient::Mcp::Tool::UpdateI18nKey do
       expect(response.error?).to be(true)
       expect(response.content.first[:text]).to include("has been published and cannot be updated via API")
     end
+
+    context "when wait is true" do
+      let(:cache) { double("cache") }
+
+      before do
+        allow(CopyTunerClient).to receive(:cache).and_return(cache)
+        allow(cache).to receive(:download)
+        allow(described_class).to receive(:sleep)
+      end
+
+      it "polls the cache until the key is reflected" do
+        allow(cache).to receive(:blurbs).and_return({}, { "ja.#{key}" => "更新後の値", "en.#{key}" => "Updated value" })
+        allow(cache).to receive(:blank_keys).and_return(Set.new)
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: true)
+
+        expect(cache).to have_received(:download).at_least(:once)
+        expect(response.error?).to be(false)
+        expect(response.content.first[:text]).to include("Confirmed in cache")
+      end
+    end
   end
 end

@@ -13,7 +13,8 @@ module CopyTunerClient
         tool_name "update_i18n_key"
         description "Update the draft translations of an existing Rails i18n key in the copy_tuner project. " \
                     "Only translations that are not yet published (or are published but empty) can be updated; " \
-                    "attempting to update an already-published translation returns an error."
+                    "attempting to update an already-published translation returns an error. " \
+                    "Set wait=true to poll the cache until the update is reflected (up to 2 minutes) before returning."
         input_schema(
           properties: {
             key: { type: "string", description: "The existing i18n key to update" },
@@ -28,6 +29,12 @@ module CopyTunerClient
                 required: %w[locale value]
               },
               description: "Translations to update for the key in different locales"
+            },
+            wait: {
+              type: "boolean",
+              default: false,
+              description: "When true, wait until the updated key is reflected in the local cache " \
+                           "(downloaded from S3) before returning, up to 2 minutes."
             }
           },
           required: %w[key translations]
@@ -36,8 +43,8 @@ module CopyTunerClient
         class << self
           include ResponseHelpers
 
-          def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
-            run_i18n_tool(key: key, translations: translations, verb: "Updated") do |loc|
+          def call(key:, translations:, server_context:, wait: false) # rubocop:disable Lint/UnusedMethodArgument
+            run_i18n_tool(key: key, translations: translations, verb: "Updated", wait: wait) do |loc|
               ApiClient.new.update_draft_blurb(key, loc)
             end
           end

@@ -54,5 +54,92 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(response.error?).to be(true)
       expect(response.content.first[:text]).to include("Locale count limit over.")
     end
+
+    context "when wait is not specified (default)" do
+      it "does not poll the cache and returns success immediately" do
+        cache = double("cache")
+        allow(CopyTunerClient).to receive(:cache).and_return(cache)
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context)
+
+        expect(cache).not_to have_received(:download) if cache.respond_to?(:download)
+        expect(response.error?).to be(false)
+      end
+    end
+
+    context "when wait is true" do
+      let(:cache) { double("cache") }
+
+      before do
+        allow(CopyTunerClient).to receive(:cache).and_return(cache)
+        allow(cache).to receive(:download)
+        # 実時間で待たないよう sleep をスタブ
+        allow(described_class).to receive(:sleep)
+      end
+
+      it "polls the cache via download until the key is reflected in blurbs" do
+        # 1回目: 未反映 / 2回目: blurbs に反映
+        allow(cache).to receive(:blurbs).and_return({}, { "ja.#{key}" => "新しいテストキー", "en.#{key}" => "New Test Key" })
+        allow(cache).to receive(:blank_keys).and_return(Set.new)
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: true)
+
+        expect(cache).to have_received(:download).at_least(:once)
+        expect(response.error?).to be(false)
+        expect(response.content.first[:text]).to include("Confirmed in cache")
+      end
+
+      it "does not treat a stale value as reflected until it matches the written value" do
+        # 1回目: 古い値（未反映） / 2回目: 書き込んだ値に一致（反映）
+        allow(cache).to receive(:blurbs).and_return(
+          { "ja.#{key}" => "古い値", "en.#{key}" => "old" },
+          { "ja.#{key}" => "新しいテストキー", "en.#{key}" => "New Test Key" }
+        )
+        allow(cache).to receive(:blank_keys).and_return(Set.new)
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: true)
+
+        expect(cache).to have_received(:download).twice
+        expect(response.error?).to be(false)
+        expect(response.content.first[:text]).to include("Confirmed in cache")
+      end
+
+      it "treats blank_keys reflection as confirmed" do
+        single = [{ locale: "ja", value: "" }]
+        allow(cache).to receive(:blurbs).and_return({})
+        allow(cache).to receive(:blank_keys).and_return(Set.new, Set.new(["ja.#{key}"]))
+
+        response = described_class.call(key: key, translations: single, server_context: server_context, wait: true)
+
+        expect(response.error?).to be(false)
+        expect(response.content.first[:text]).to include("Confirmed in cache")
+      end
+
+      it "returns success with a warning when the key is not reflected within the timeout" do
+        allow(cache).to receive(:blurbs).and_return({})
+        allow(cache).to receive(:blank_keys).and_return(Set.new)
+        # 単調時間をスタブして即タイムアウトさせる（0 秒 → 上限超過）
+        allow(described_class).to receive(:monotonic_time).and_return(0.0, 1_000.0)
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: true)
+
+        expect(response.error?).to be(false)
+        expect(response.content.first[:text]).to include("not confirmed")
+      end
+
+      it "does not poll the cache when the API call fails" do
+        allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
+          .and_raise(CopyTunerClient::Mcp::ApiError, "boom")
+
+        response = described_class.call(key: key, translations: translations, server_context: server_context,
+                                        wait: true)
+
+        expect(cache).not_to have_received(:download)
+        expect(response.error?).to be(true)
+      end
+    end
   end
 end
