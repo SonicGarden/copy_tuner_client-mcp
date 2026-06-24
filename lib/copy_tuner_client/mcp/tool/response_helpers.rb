@@ -51,7 +51,7 @@ module CopyTunerClient
             " Confirmed in cache."
           else
             " (cache reflection not confirmed within #{CACHE_WAIT_TIMEOUT}s; " \
-              "draft may still be propagating, or this project downloads published content only.)"
+              "draft may still be propagating.)"
           end
         end
 
