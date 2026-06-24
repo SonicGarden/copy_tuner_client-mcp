@@ -21,7 +21,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         .and_return({ "message" => "Draft blurbs created successfully" })
     end
 
-    it "creates a bulk draft blurb with localizations for multiple locales" do
+    it "複数ロケールのローカライズを含む一括 draft blurb を作成する" do
       response = described_class.call(key: key, translations: translations, server_context: server_context)
 
       expect(api_client).to have_received(:create_sync_bulk_draft_blurbs).with(
@@ -34,7 +34,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(response.content.first[:text]).to include("ja, en")
     end
 
-    it "handles single locale translation" do
+    it "単一ロケールの翻訳を処理する" do
       single_translation = [{ locale: "ja", value: "単一ロケール" }]
 
       response = described_class.call(key: key, translations: single_translation, server_context: server_context)
@@ -45,7 +45,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(response.error?).to be(false)
     end
 
-    it "returns an error response when the API call fails" do
+    it "API 呼び出しが失敗したときエラーレスポンスを返す" do
       allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
         .and_raise(CopyTunerClient::Mcp::ApiError, "Locale count limit over.")
 
@@ -55,8 +55,8 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       expect(response.content.first[:text]).to include("Locale count limit over.")
     end
 
-    context "when wait is not specified (default)" do
-      it "does not poll the cache and returns success immediately" do
+    context "wait を指定しない（デフォルト）とき" do
+      it "キャッシュをポーリングせず即座に成功を返す" do
         cache = double("cache")
         allow(cache).to receive(:download)
         allow(CopyTunerClient).to receive(:cache).and_return(cache)
@@ -68,7 +68,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
       end
     end
 
-    context "when wait is true" do
+    context "wait が true のとき" do
       let(:cache) { double("cache") }
 
       before do
@@ -78,7 +78,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         allow(described_class).to receive(:sleep)
       end
 
-      it "polls the cache via download until the key is reflected in blurbs" do
+      it "blurbs にキーが反映されるまで download でキャッシュをポーリングする" do
         # 1回目: 未反映 / 2回目: blurbs に反映
         allow(cache).to receive(:blurbs).and_return({}, { "ja.#{key}" => "新しいテストキー", "en.#{key}" => "New Test Key" })
         allow(cache).to receive(:blank_keys).and_return(Set.new)
@@ -91,7 +91,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         expect(response.content.first[:text]).to include("Confirmed in cache")
       end
 
-      it "does not treat a stale value as reflected until it matches the written value" do
+      it "書き込んだ値と一致するまで古い値を反映済みと見なさない" do
         # 1回目: 古い値（未反映） / 2回目: 書き込んだ値に一致（反映）
         allow(cache).to receive(:blurbs).and_return(
           { "ja.#{key}" => "古い値", "en.#{key}" => "old" },
@@ -107,7 +107,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         expect(response.content.first[:text]).to include("Confirmed in cache")
       end
 
-      it "treats blank_keys reflection as confirmed" do
+      it "blank_keys への反映を確認済みと見なす" do
         single = [{ locale: "ja", value: "" }]
         allow(cache).to receive(:blurbs).and_return({})
         allow(cache).to receive(:blank_keys).and_return(Set.new, Set.new(["ja.#{key}"]))
@@ -118,7 +118,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         expect(response.content.first[:text]).to include("Confirmed in cache")
       end
 
-      it "returns success with a warning when the key is not reflected within the timeout" do
+      it "タイムアウト内に反映されないとき警告付きで成功を返す" do
         allow(cache).to receive(:blurbs).and_return({})
         allow(cache).to receive(:blank_keys).and_return(Set.new)
         # 単調時間をスタブして即タイムアウトさせる（0 秒 → 上限超過）
@@ -131,7 +131,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
         expect(response.content.first[:text]).to include("not confirmed")
       end
 
-      it "does not poll the cache when the API call fails" do
+      it "API 呼び出しが失敗したときキャッシュをポーリングしない" do
         allow(api_client).to receive(:create_sync_bulk_draft_blurbs)
           .and_raise(CopyTunerClient::Mcp::ApiError, "boom")
 
