@@ -58,11 +58,12 @@ RSpec.describe CopyTunerClient::Mcp::Tool::CreateI18nKey do
     context "when wait is not specified (default)" do
       it "does not poll the cache and returns success immediately" do
         cache = double("cache")
+        allow(cache).to receive(:download)
         allow(CopyTunerClient).to receive(:cache).and_return(cache)
 
         response = described_class.call(key: key, translations: translations, server_context: server_context)
 
-        expect(cache).not_to have_received(:download) if cache.respond_to?(:download)
+        expect(cache).not_to have_received(:download)
         expect(response.error?).to be(false)
       end
     end
