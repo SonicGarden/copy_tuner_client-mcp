@@ -23,7 +23,7 @@ module CopyTunerClient
         # @param wait [Boolean] true のとき、書き込んだ値が CopyTunerClient.cache に
         #   反映される（S3 ダウンロードで blurbs / blank_keys の値が書き込んだ値と一致する）まで
         #   最大 CACHE_WAIT_TIMEOUT 秒ポーリングしてから成功レスポンスを返す。
-        def run_i18n_tool(key:, translations:, verb:, wait: false)
+        def run_i18n_tool(key:, translations:, verb:, wait:)
           localizations = translations.to_h { |t| [t[:locale], t[:value]] }
 
           yield localizations
@@ -62,9 +62,10 @@ module CopyTunerClient
           deadline = monotonic_time + CACHE_WAIT_TIMEOUT
 
           loop do
+            return false if monotonic_time >= deadline
+
             refresh_cache
             return true if reflected?(key, localizations)
-            return false if monotonic_time >= deadline
 
             sleep CACHE_WAIT_INTERVAL
           end
@@ -76,6 +77,7 @@ module CopyTunerClient
           blank_keys = cache.blank_keys
           localizations.any? do |locale, value|
             locale_key = "#{locale}.#{key}"
+            # 空文字翻訳は CopyTunerClient が blurbs でなく blank_keys に格納するため分岐する
             value.to_s.empty? ? blank_keys.include?(locale_key) : blurbs[locale_key] == value
           end
         end
