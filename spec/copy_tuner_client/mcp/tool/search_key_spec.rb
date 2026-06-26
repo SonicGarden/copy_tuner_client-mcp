@@ -21,7 +21,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       )
     end
 
-    it "returns matching keys for the specified locale" do
+    it "指定したロケールに一致するキーを返す" do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -34,7 +34,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(result).not_to include("en.test_key")
     end
 
-    it "returns empty result when no keys match" do
+    it "キーが一致しないとき空の結果を返す" do
       response = described_class.call(query: "nonexistent", server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -44,7 +44,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(result).to be_empty
     end
 
-    it "uses 'ja' as default locale when not specified" do
+    it "ロケールを指定しないとき 'ja' をデフォルトとして使う" do
       response = described_class.call(query: query, server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -52,7 +52,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(result).to include("test_key" => "テストキー")
     end
 
-    it "includes registered-but-empty keys with an empty string value" do
+    it "登録済みで翻訳が空のキーを空文字列で含める" do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       expect(response.error?).to be(false)
@@ -60,7 +60,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(result).to include("test_key_blank" => "")
     end
 
-    it "returns both translated and blank keys mixed together" do
+    it "翻訳済みキーと空キーを混在して返す" do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       result = JSON.parse(response.content.first[:text])
@@ -68,7 +68,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchKey do
       expect(result).to include("test_key_blank" => "")
     end
 
-    it "applies the locale filter to blank_keys as well" do
+    it "blank_keys にもロケールフィルターを適用する" do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       result = JSON.parse(response.content.first[:text])

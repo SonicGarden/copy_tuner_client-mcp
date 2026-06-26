@@ -29,7 +29,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::UpdateI18nKey do
       allow(described_class).to receive(:sleep)
     end
 
-    it "updates the draft blurb localizations for the given key" do
+    it "指定したキーの draft blurb ローカライズを更新する" do
       response = described_class.call(key: key, translations: translations, server_context: server_context)
 
       expect(api_client).to have_received(:update_draft_blurb).with(
@@ -42,7 +42,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::UpdateI18nKey do
       expect(response.content.first[:text]).to include("ja, en")
     end
 
-    it "returns an error response when the key is already published" do
+    it "キーがすでに公開済みのときエラーレスポンスを返す" do
       message = "Some translations cannot be updated. " \
                 "Translation for locale 'en' has been published and cannot be updated via API."
       allow(api_client).to receive(:update_draft_blurb)

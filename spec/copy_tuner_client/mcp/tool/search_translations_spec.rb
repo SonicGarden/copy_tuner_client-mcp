@@ -19,7 +19,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchTranslations do
       )
     end
 
-    it "returns matching translations containing the query text" do
+    it "クエリテキストを含む一致する翻訳を返す" do
       response = described_class.call(query: query, server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -32,7 +32,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchTranslations do
       expect(result).not_to include("test_key" => "Test Key") # English translation should not be included
     end
 
-    it "returns empty result when no translations match" do
+    it "翻訳が一致しないとき空の結果を返す" do
       response = described_class.call(query: "存在しない", server_context: server_context, locale: locale)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -42,7 +42,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::SearchTranslations do
       expect(result).to be_empty
     end
 
-    it "uses 'ja' as default locale when not specified" do
+    it "ロケールを指定しないとき 'ja' をデフォルトとして使う" do
       response = described_class.call(query: query, server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)

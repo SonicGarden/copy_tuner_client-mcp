@@ -11,7 +11,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetLocales do
       allow(CopyTunerClient).to receive(:configuration).and_return(mock_configuration)
     end
 
-    it "returns the list of configured locales" do
+    it "設定済みロケールの一覧を返す" do
       response = described_class.call(server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -22,7 +22,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetLocales do
       expect(result).to eq({ "locales" => %w[ja en fr] })
     end
 
-    it "handles empty locales list" do
+    it "ロケールリストが空のとき処理する" do
       allow(mock_configuration).to receive(:locales).and_return([])
 
       response = described_class.call(server_context: server_context)
