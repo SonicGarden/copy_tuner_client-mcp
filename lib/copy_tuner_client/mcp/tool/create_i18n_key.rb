@@ -17,7 +17,9 @@ module CopyTunerClient
                     "the locale count limit is exceeded) are returned immediately. " \
                     "Note: this endpoint is for initial registration only and rejects existing keys. " \
                     "The created draft is not immediately visible to clients because cache (S3) refresh " \
-                    "happens asynchronously, and publishing happens separately on the CopyTuner side."
+                    "happens asynchronously, and publishing happens separately on the CopyTuner side. " \
+                    "By default, waits until the key is reflected in the local cache (up to 2 minutes). " \
+                    "Set wait=false to return immediately without waiting."
         input_schema(
           properties: {
             key: { type: "string", description: "The i18n key to register" },
@@ -32,6 +34,13 @@ module CopyTunerClient
                 required: %w[locale value]
               },
               description: "Translations for the key in different locales"
+            },
+            wait: {
+              type: "boolean",
+              default: true,
+              description: "When false, return immediately without waiting for cache reflection. " \
+                           "By default (true), wait until the created key is reflected in the local cache " \
+                           "(downloaded from S3) before returning, up to 2 minutes."
             }
           },
           required: ["key"]
@@ -40,9 +49,9 @@ module CopyTunerClient
         class << self
           include ResponseHelpers
 
-          def call(key:, translations:, server_context:) # rubocop:disable Lint/UnusedMethodArgument
+          def call(key:, translations:, server_context:, wait: true) # rubocop:disable Lint/UnusedMethodArgument
             # NOTE: 同一キーの複数言語はcopytunerの仕様上同時に登録する必要がある
-            run_i18n_tool(key: key, translations: translations, verb: "Created") do |loc|
+            run_i18n_tool(key: key, translations: translations, verb: "Created", wait: wait) do |loc|
               ApiClient.new.create_sync_bulk_draft_blurbs([{ key: key, localizations: loc }])
             end
           end

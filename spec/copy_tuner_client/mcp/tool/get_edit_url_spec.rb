@@ -13,7 +13,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetEditUrl do
       allow(CopyTunerClient).to receive(:configuration).and_return(mock_configuration)
     end
 
-    it "returns the edit URL for the given key" do
+    it "指定したキーの編集 URL を返す" do
       response = described_class.call(key: key, server_context: server_context)
 
       expect(response).to be_a(MCP::Tool::Response)
@@ -24,7 +24,7 @@ RSpec.describe CopyTunerClient::Mcp::Tool::GetEditUrl do
       expect(response.content.first[:text]).to eq(expected_url)
     end
 
-    it "handles keys with special characters" do
+    it "特殊文字を含むキーを処理する" do
       special_key = "test.key-with_special.chars"
 
       response = described_class.call(key: special_key, server_context: server_context)

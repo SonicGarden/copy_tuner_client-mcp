@@ -40,7 +40,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
       [{ key: "greeting.hello", localizations: { "ja" => "こんにちは", "en" => "Hello" } }]
     end
 
-    it "POSTs to /api/v3/sync_bulk_draft_blurbs with bearer auth and json body" do
+    it "bearer 認証と JSON ボディで /api/v3/sync_bulk_draft_blurbs に POST する" do
       captured = {}
       allow(http).to receive(:request) do |request|
         captured[:method] = request.method
@@ -65,7 +65,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
       expect(result["message"]).to eq("Draft blurbs created successfully")
     end
 
-    it "raises ApiError with the message and errors array on 422" do
+    it "422 のとき message と errors 配列を含む ApiError を raise する" do
       body = '{"message":"Failed to create draft blurbs.",' \
              '"errors":["Blurb \'greeting.hello\' already exists."]}'
       allow(http).to receive(:request).and_return(
@@ -79,7 +79,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
         )
     end
 
-    it "raises ApiError on 401" do
+    it "401 のとき ApiError を raise する" do
       allow(http).to receive(:request).and_return(
         stub_response(Net::HTTPUnauthorized, '{"error":"Invalid API key."}')
       )
@@ -92,7 +92,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
   describe "#update_draft_blurb" do
     let(:localizations) { { "ja" => "こんにちは" } }
 
-    it "PATCHes to /api/v3/draft_blurbs/{key} with escaped key and blurb body" do
+    it "エスケープ済みキーと blurb ボディで /api/v3/draft_blurbs/{key} に PATCH する" do
       captured = {}
       allow(http).to receive(:request) do |request|
         captured[:method] = request.method
@@ -111,7 +111,7 @@ RSpec.describe CopyTunerClient::Mcp::ApiClient do
       expect(result["message"]).to eq("Draft blurb localizations updated successfully")
     end
 
-    it "includes the errors array in the ApiError message on 422" do
+    it "422 のとき errors 配列を ApiError のメッセージに含める" do
       body = '{"message":"Some translations cannot be updated.",' \
              '"errors":["Translation for locale \'en\' has been published and cannot be updated via API."]}'
       allow(http).to receive(:request).and_return(

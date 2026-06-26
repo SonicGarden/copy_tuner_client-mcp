@@ -12,3 +12,8 @@ Layout/MultilineMethodCallIndentation:
 
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
+
+# spec は describe/context のネストでブロックが長くなるため計測対象から除外する。
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
