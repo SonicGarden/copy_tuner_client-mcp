@@ -36,4 +36,4 @@ Rails アプリの i18n キー検索・翻訳の作成/更新を MCP 経由で�
   配列にも登録する必要がある（未登録だと公開されない）。
 - 書き込みツールは `ResponseHelpers` を include し、`MCP::Tool::Response` を返す。
 - spec では `CopyTunerClient.cache` / `.configuration` を double でモックする。
-- Ruby: gemspec/rubocop は 3.1 を対象、CI は 3.4.2 で実行。
+- Ruby: gemspec/rubocop は 3.1 を対象、CI は 3.4 系・4.0 系の最新パッチで実行。
