@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new depende
   spec.add_dependency "copy_tuner_client", ">= 1.2.4"
-  spec.add_dependency "mcp", "~> 0.15"
+  spec.add_dependency "mcp", "~> 1.8"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
